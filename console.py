@@ -104,7 +104,7 @@ class HBNBCommand(cmd.Cmd):
         """
         all_instances = storage.all()
         if len(line) == 0:
-            all_obj = []
+            all_objs = []
             for k, obj in all_instances.items():
                 all_objs.append(str(obj))
             print(all_objs)
