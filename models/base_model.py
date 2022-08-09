@@ -6,8 +6,8 @@ and methods for other classes
 """
 
 
-import models
-from uuid import uuid4
+import uuid
+from models import storage
 from datetime import datetime
 
 time = "%Y-%m-%dT%H:%M:%S.%f"
@@ -30,44 +30,42 @@ class BaseModel:
         accepts args and kwargs
         uid is a uuid of type str
         """
-        if kwargs:
-            for key, value in kwargs.items():
+        if kwargs is not None and kwargs != {}:
+            for key in kwargs:
                 if key == "created_at":
-                    self.created_at = datetime.strptime(
-                            kwargs["created_at"], time)
+                    self.__dict__["created_at"] = datetime.strptime(
+                        kwargs["created_at"], time)
                 elif key == "updated_at":
-                    self.updated_at = datetime.strptime(
-                            kwargs["updated_at"], time)
-                elif key == "__class__":
-                    continue
+                    self.__dict__["updated_at"] = datetime.strptime(
+                        kwargs["updated_at"], time)
                 else:
-                    self.__dict__[key] = value
+                    self.__dict__[key] = kwargs[key]
         else:
+            self.id = str(uuid.uuid4())
             self.created_at = datetime.now()
             self.updated_at = datetime.now()
-            self.id = str(uuid4())
-            models.storage.new(self)
+            storage.new(self)
 
     def __str__(self):
         """
         string representation of the BaseModel class
         """
-        return "[{:s}] ({:s}) {}".format(self.__class__.__name__,
-                                         self.id, self.__dict__)
+        return "[{}] ({}) {}".format(type(self).__name__,
+                                     self.id, self.__dict__)
 
     def save(self):
         """
         updates the attribute update_at with current datetime
         """
         self.updated_at = datetime.now()
-        models.storage.save()
+        storage.save()
 
     def to_dict(self):
         """
         returns a dictionary representation of the keys/values of the instance
         """
-        new_dict = self.__dict__.copy()
-        new_dict["created_at"] = self.created_at.isoformat()
-        new_dict["updated_at"] = self.updated_at.isoformat()
-        new_dict["__class__"] = self.__class__.__name__
-        return new_dict
+        my_dict = self.__dict__.copy()
+        my_dict["__class__"] = type(self).__name__
+        my_dict["created_at"] = my_dict["created_at"].isoformat()
+        my_dict["updated_at"] = my_dict["updated_at"].isoformat()
+        return my_dict
